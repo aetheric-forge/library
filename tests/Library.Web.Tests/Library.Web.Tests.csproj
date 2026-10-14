@@ -6,5 +6,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
     <ProjectReference Include="../../Library.Web/Library.Web.csproj" />
     <ProjectReference Include="../../runtime/src/Providers/AethericForge.Runtime.Providers.Knowledge.InMemory/AethericForge.Runtime.Providers.Knowledge.InMemory.csproj" />
+    <ProjectReference Include="../../runtime/src/Provisioning/Aetheric.Provisioning.Definitions/Aetheric.Provisioning.Definitions.csproj" />
   </ItemGroup>
+  <ItemGroup><None Include="../../institution/*.yaml" Link="institution/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

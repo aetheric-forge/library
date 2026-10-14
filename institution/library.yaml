@@ -11,6 +11,7 @@ capabilities: []
 resources:
   - id: knowledge
     name: Library storage
+    description: Canonical articles and durable knowledge.
     type: knowledge
     ownership: owned
 workflows: []
