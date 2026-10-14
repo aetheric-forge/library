@@ -1,0 +1,4 @@
+**/bin/
+**/obj/
+.module-build/
+.env*
