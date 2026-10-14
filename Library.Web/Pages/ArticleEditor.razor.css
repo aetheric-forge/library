@@ -1,0 +1,241 @@
+.editor-page {
+    max-width: 82rem;
+    margin: 0 auto;
+}
+
+.editor-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.65rem;
+    color: var(--py-cobalt);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.editor-header h1 {
+    margin: 0;
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    letter-spacing: -0.045em;
+}
+
+.editor-header p:last-child,
+.editor-state {
+    margin: 0.65rem 0 0;
+    color: var(--py-muted);
+}
+
+.editor-status {
+    display: grid;
+    justify-items: end;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--py-line);
+    border-radius: 0.65rem;
+}
+
+.editor-status span {
+    color: var(--py-cobalt);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.editor-status small {
+    margin-top: 0.2rem;
+    color: var(--py-muted);
+}
+
+.editor-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    gap: 1rem;
+}
+
+.editor-primary,
+.editor-filing {
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--py-line);
+    border-radius: 0.85rem;
+    background: var(--py-surface);
+}
+
+.section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-heading > span {
+    color: var(--py-cobalt);
+    font-family: var(--py-display);
+    font-size: 0.78rem;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.section-heading p {
+    margin: 0.25rem 0 0;
+    color: var(--py-muted);
+    font-size: 0.84rem;
+}
+
+.section-heading--compact {
+    margin-bottom: 1.75rem;
+}
+
+.field-grid,
+.editor-filing {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.field {
+    min-width: 0;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.field label span,
+.field small,
+.markdown-label span {
+    color: var(--py-muted);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.field small {
+    display: block;
+    margin-top: 0.35rem;
+}
+
+.article-abstract {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.markdown-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.markdown-editor {
+    min-height: 34rem;
+    padding: 1.25rem;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    tab-size: 2;
+}
+
+.editor-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--py-line);
+    border-radius: 0.75rem;
+    background: var(--py-surface);
+}
+
+.editor-actions span {
+    color: var(--py-muted);
+    font-size: 0.8rem;
+}
+
+.workflow-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--py-line);
+    border-radius: 0.85rem;
+}
+
+.workflow-panel h2 {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.workflow-panel p:last-child {
+    margin: 0.35rem 0 0;
+    color: var(--py-muted);
+    font-size: 0.85rem;
+}
+
+.workflow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}
+
+.workflow-actions span {
+    color: var(--py-muted);
+    font-size: 0.85rem;
+}
+
+.editor-result {
+    margin-top: 1rem;
+}
+
+::deep .validation-message {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--bs-danger);
+    font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+    .editor-form {
+        grid-template-columns: 1fr;
+    }
+
+    .editor-actions {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .editor-header,
+    .editor-actions,
+    .workflow-panel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .editor-status {
+        justify-items: start;
+    }
+
+    .markdown-label {
+        display: block;
+    }
+
+    .workflow-actions {
+        justify-content: flex-start;
+    }
+}

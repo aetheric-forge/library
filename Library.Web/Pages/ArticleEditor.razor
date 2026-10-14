@@ -1,0 +1,519 @@
+@page "/library/articles/new"
+@page "/library/articles/{CanonicalId:guid}"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@inject IArticleLibrary ArticleLibrary
+@inject ICurrentIdentityAccessor CurrentIdentity
+@inject NavigationManager Navigation
+@inject ILogger<ArticleEditor> Logger
+
+<PageTitle>@(article is null ? "New article" : $"Edit {article.Identity.Title}")</PageTitle>
+
+<div class="editor-page">
+    @if (isLoading)
+    {
+        <p class="editor-state" role="status">Opening the article…</p>
+    }
+    else if (notFound)
+    {
+        <div class="alert alert-warning" role="alert">
+            This article could not be found.
+            <a href="/library">Return to the catalogue</a>.
+        </div>
+    }
+    else
+    {
+        <header class="editor-header">
+            <div>
+                <p class="eyebrow">@(article is null ? "New record" : $"Revision {article.Publication.Revision}")</p>
+                <h1>@(article is null ? "File an article" : "Edit article")</h1>
+                <p>Write in Markdown and give the Library enough structure to find the work again.</p>
+            </div>
+            @if (article is not null)
+            {
+                <div class="editor-status">
+                    <span>@article.Publication.State</span>
+                    <small>@article.Publication.Visibility visibility</small>
+                </div>
+            }
+        </header>
+
+        <EditForm Model="input" OnValidSubmit="SaveAsync" FormName="article-editor" class="editor-form">
+            <DataAnnotationsValidator />
+
+            <section class="editor-primary" aria-labelledby="writing-heading">
+                <div class="section-heading">
+                    <span>01</span>
+                    <div>
+                        <h2 id="writing-heading">Writing</h2>
+                        <p>The canonical Markdown source preserved by the Library.</p>
+                    </div>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field field--wide">
+                        <label for="article-title">Title</label>
+                        <InputText id="article-title"
+                                   class="form-control form-control-lg"
+                                   @bind-Value="input.Title"
+                                   placeholder="A clear title for the article" />
+                        <ValidationMessage For="() => input.Title" />
+                    </div>
+
+                    <div class="field field--wide">
+                        <label for="article-subtitle">
+                            Subtitle <span>(optional)</span>
+                        </label>
+                        <InputText id="article-subtitle"
+                                   class="form-control"
+                                   @bind-Value="input.Subtitle"
+                                   placeholder="A little more context" />
+                    </div>
+
+                    <div class="field field--wide">
+                        <label for="article-abstract">
+                            Abstract <span>(optional)</span>
+                        </label>
+                        <InputTextArea id="article-abstract"
+                                       class="form-control article-abstract"
+                                       @bind-Value="input.Abstract"
+                                       placeholder="A concise summary for catalogue and publication views." />
+                    </div>
+
+                    <div class="field field--wide">
+                        <div class="markdown-label">
+                            <label for="article-body">Markdown</label>
+                            <span>Headings, lists, links, emphasis, and code are preserved as source.</span>
+                        </div>
+                        <InputTextArea id="article-body"
+                                       class="form-control markdown-editor"
+                                       @bind-Value="input.Body"
+                                       placeholder="# Begin here&#10;&#10;Write the article in Markdown…" />
+                        <ValidationMessage For="() => input.Body" />
+                    </div>
+                </div>
+            </section>
+
+            <aside class="editor-filing" aria-labelledby="filing-heading">
+                <div class="section-heading section-heading--compact">
+                    <span>02</span>
+                    <div>
+                        <h2 id="filing-heading">Filing</h2>
+                        <p>Catalogue metadata for retrieval and publication.</p>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="article-slug">Slug</label>
+                    <InputText id="article-slug"
+                               class="form-control"
+                               @bind-Value="input.Slug"
+                               placeholder="derived-from-title" />
+                    <ValidationMessage For="() => input.Slug" />
+                    <small>Leave blank on a new article to derive it from the title.</small>
+                </div>
+
+                <div class="field">
+                    <label for="article-topics">Topics</label>
+                    <InputText id="article-topics"
+                               class="form-control"
+                               @bind-Value="input.Topics"
+                               placeholder="Knowledge, Institutions" />
+                    <small>Comma-separated</small>
+                </div>
+
+                <div class="field">
+                    <label for="article-tags">Tags</label>
+                    <InputText id="article-tags"
+                               class="form-control"
+                               @bind-Value="input.Tags"
+                               placeholder="library, publishing" />
+                    <small>Comma-separated</small>
+                </div>
+
+                <div class="field">
+                    <label for="article-series">Series</label>
+                    <InputText id="article-series"
+                               class="form-control"
+                               @bind-Value="input.Series"
+                               placeholder="Campus Notes" />
+                </div>
+
+                <div class="field">
+                    <label for="article-collection">Collection</label>
+                    <InputText id="article-collection"
+                               class="form-control"
+                               @bind-Value="input.Collection"
+                               placeholder="Library Essays" />
+                </div>
+
+                <div class="field">
+                    <label for="article-visibility">Visibility</label>
+                    <InputSelect id="article-visibility"
+                                 class="form-select"
+                                 @bind-Value="input.Visibility">
+                        @foreach (var visibility in Enum.GetValues<ArticleVisibility>())
+                        {
+                            <option value="@visibility">@visibility</option>
+                        }
+                    </InputSelect>
+                </div>
+            </aside>
+
+            <footer class="editor-actions">
+                <div>
+                    <button class="btn btn-primary" type="submit" disabled="@isSaving">
+                        @(isSaving ? "Saving…" : article is null ? "Create draft" : "Save revision")
+                    </button>
+                    <a class="btn btn-link" href="/library">Cancel</a>
+                </div>
+                <span>
+                    @(article is null
+                        ? "The first record will be private and in Draft."
+                        : $"Saving creates revision {article.Publication.Revision + 1}.")
+                </span>
+            </footer>
+        </EditForm>
+
+        @if (article is not null)
+        {
+            <section class="workflow-panel" aria-labelledby="workflow-heading">
+                <div>
+                    <p class="eyebrow">Publication</p>
+                    <h2 id="workflow-heading">Move the record forward</h2>
+                    <p>State changes are recorded as their own authoritative revisions.</p>
+                </div>
+                <div class="workflow-actions">
+                    @foreach (var target in AvailableTransitions(article.Publication.State))
+                    {
+                        <button class="btn btn-outline-primary"
+                                type="button"
+                                disabled="@isTransitioning"
+                                @onclick="() => TransitionAsync(target)">
+                            @TransitionLabel(target)
+                        </button>
+                    }
+                    @if (!AvailableTransitions(article.Publication.State).Any())
+                    {
+                        <span>No further transitions are available.</span>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (saveSucceeded)
+        {
+            <div class="alert alert-success editor-result" role="status">
+                The article is filed as revision @article?.Publication.Revision.
+            </div>
+        }
+
+        @if (operationFailed)
+        {
+            <div class="alert alert-danger editor-result" role="alert">
+                @failureMessage Your text remains in the editor.
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? CanonicalId { get; set; }
+
+    private ArticleInput input = new();
+    private Article? article;
+    private bool isLoading = true;
+    private bool notFound;
+    private bool isSaving;
+    private bool isTransitioning;
+    private bool saveSucceeded;
+    private bool operationFailed;
+    private string failureMessage = "The article could not be saved.";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        notFound = false;
+        saveSucceeded = false;
+        operationFailed = false;
+
+        if (CanonicalId is null)
+        {
+            article = null;
+            input = new ArticleInput();
+            isLoading = false;
+            return;
+        }
+
+        try
+        {
+            article = await ArticleLibrary.GetAsync(CanonicalId.Value);
+            if (article is null)
+            {
+                notFound = true;
+            }
+            else
+            {
+                input = ArticleInput.FromArticle(article);
+            }
+        }
+        catch (Exception exception)
+        {
+            notFound = true;
+            Logger.LogError(exception, "Article {CanonicalId} retrieval failed", CanonicalId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        isSaving = true;
+        saveSucceeded = false;
+        operationFailed = false;
+
+        try
+        {
+            var actor = await GetCurrentAgentAsync();
+            if (article is null)
+            {
+                article = await ArticleLibrary.CreateAsync(input.ToNewArticle(actor));
+                input = ArticleInput.FromArticle(article);
+                Navigation.NavigateTo(
+                    $"/library/articles/{article.Identity.CanonicalId}",
+                    replace: true);
+            }
+            else
+            {
+                article = await ArticleLibrary.SaveAsync(input.ApplyTo(article, actor));
+                input = ArticleInput.FromArticle(article);
+                saveSucceeded = true;
+            }
+        }
+        catch (Exception exception)
+        {
+            operationFailed = true;
+            failureMessage = "The article could not be saved.";
+            Logger.LogError(exception, "Article save failed");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task TransitionAsync(ArticlePublicationState target)
+    {
+        if (article is null)
+        {
+            return;
+        }
+
+        isTransitioning = true;
+        saveSucceeded = false;
+        operationFailed = false;
+
+        try
+        {
+            article = await ArticleLibrary.TransitionAsync(
+                article.Identity.CanonicalId,
+                target,
+                await GetCurrentAgentAsync());
+            input = ArticleInput.FromArticle(article);
+            saveSucceeded = true;
+        }
+        catch (Exception exception)
+        {
+            operationFailed = true;
+            failureMessage = "The publication state could not be changed.";
+            Logger.LogError(
+                exception,
+                "Article {CanonicalId} transition to {TargetState} failed",
+                article.Identity.CanonicalId,
+                target);
+        }
+        finally
+        {
+            isTransitioning = false;
+        }
+    }
+
+    private async Task<ArticleAgent> GetCurrentAgentAsync()
+    {
+        var identity = await CurrentIdentity.GetIdentityAsync();
+        return new ArticleAgent
+        {
+            IdentityReference = $"{identity.Scheme}:{identity.SubjectId}",
+            DisplayName = identity.DisplayName ?? identity.SubjectId,
+        };
+    }
+
+    private static IEnumerable<ArticlePublicationState> AvailableTransitions(
+        ArticlePublicationState current)
+        => Enum.GetValues<ArticlePublicationState>()
+            .Where(target => ArticleWorkflow.CanTransition(current, target))
+            .Where(target => target != ArticlePublicationState.Scheduled);
+
+    private static string TransitionLabel(ArticlePublicationState target)
+        => target switch
+        {
+            ArticlePublicationState.InReview => "Submit for review",
+            ArticlePublicationState.Draft => "Return to draft",
+            ArticlePublicationState.Approved => "Approve",
+            ArticlePublicationState.Published => "Publish",
+            ArticlePublicationState.Withdrawn => "Withdraw",
+            ArticlePublicationState.Archived => "Archive",
+            _ => target.ToString(),
+        };
+
+    private sealed class ArticleInput
+    {
+        [Required(ErrorMessage = "Give the article a title.")]
+        [StringLength(240, ErrorMessage = "Keep the title under 240 characters.")]
+        public string Title { get; set; } = string.Empty;
+
+        [StringLength(320, ErrorMessage = "Keep the subtitle under 320 characters.")]
+        public string? Subtitle { get; set; }
+
+        [StringLength(240, ErrorMessage = "Keep the slug under 240 characters.")]
+        public string Slug { get; set; } = string.Empty;
+
+        [StringLength(4_000, ErrorMessage = "Keep the abstract under 4,000 characters.")]
+        public string? Abstract { get; set; }
+
+        [Required(ErrorMessage = "Write some Markdown before filing the article.")]
+        public string Body { get; set; } = string.Empty;
+
+        public string Topics { get; set; } = string.Empty;
+        public string Tags { get; set; } = string.Empty;
+        public string? Series { get; set; }
+        public string? Collection { get; set; }
+        public ArticleVisibility Visibility { get; set; } = ArticleVisibility.Private;
+
+        public static ArticleInput FromArticle(Article source)
+            => new()
+            {
+                Title = source.Identity.Title,
+                Subtitle = source.Identity.Subtitle,
+                Slug = source.Identity.Slug,
+                Abstract = source.Content.Abstract,
+                Body = source.Content.Body,
+                Topics = string.Join(", ", source.Classification.Topics),
+                Tags = string.Join(", ", source.Classification.Tags),
+                Series = source.Classification.Series,
+                Collection = source.Classification.Collection,
+                Visibility = source.Publication.Visibility,
+            };
+
+        public Article ToNewArticle(ArticleAgent actor)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var campus = new InstitutionReference
+            {
+                Id = "forge-campus",
+                Name = "Forge Campus",
+            };
+            return new Article
+            {
+                Identity = new ArticleIdentity
+                {
+                    Title = Title.Trim(),
+                    Subtitle = Normalize(Subtitle),
+                    Slug = NormalizeSlug(Slug, Title),
+                },
+                Authorship = new ArticleAuthorship
+                {
+                    Authors = [actor],
+                    Institution = campus,
+                },
+                Publication = new ArticlePublication
+                {
+                    Visibility = Visibility,
+                },
+                Classification = ToClassification(),
+                Content = ToContent(),
+                Provenance = new ArticleProvenance
+                {
+                    Authority = new InstitutionReference
+                    {
+                        Id = "forge-library",
+                        Name = "Library",
+                    },
+                    Origin = campus,
+                    CreatedBy = actor,
+                    CreatedAtUtc = now,
+                    UpdatedBy = actor,
+                    UpdatedAtUtc = now,
+                },
+            };
+        }
+
+        public Article ApplyTo(Article source, ArticleAgent actor)
+            => source with
+            {
+                Identity = source.Identity with
+                {
+                    Title = Title.Trim(),
+                    Subtitle = Normalize(Subtitle),
+                    Slug = NormalizeSlug(Slug, Title),
+                },
+                Publication = source.Publication with
+                {
+                    Visibility = Visibility,
+                },
+                Classification = ToClassification(),
+                Content = source.Content with
+                {
+                    Abstract = Normalize(Abstract),
+                    Body = Body,
+                    BodyFormat = ArticleContentFormats.Markdown,
+                },
+                Provenance = source.Provenance with
+                {
+                    UpdatedBy = actor,
+                    UpdatedAtUtc = DateTimeOffset.UtcNow,
+                },
+            };
+
+        private ArticleClassification ToClassification()
+            => new()
+            {
+                Topics = ParseList(Topics),
+                Tags = ParseList(Tags),
+                Series = Normalize(Series),
+                Collection = Normalize(Collection),
+            };
+
+        private ArticleContent ToContent()
+            => new()
+            {
+                Abstract = Normalize(Abstract),
+                Body = Body,
+                BodyFormat = ArticleContentFormats.Markdown,
+            };
+
+        private static string[] ParseList(string value)
+            => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+        private static string? Normalize(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static string NormalizeSlug(string supplied, string title)
+        {
+            var source = string.IsNullOrWhiteSpace(supplied) ? title : supplied;
+            var characters = source
+                .Trim()
+                .ToLowerInvariant()
+                .Select(character => char.IsLetterOrDigit(character) ? character : '-')
+                .ToArray();
+            var parts = new string(characters)
+                .Split('-', StringSplitOptions.RemoveEmptyEntries);
+            return string.Join("-", parts);
+        }
+    }
+}

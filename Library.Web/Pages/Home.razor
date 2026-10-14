@@ -1,0 +1,148 @@
+@page "/library"
+@rendermode InteractiveServer
+@inject IArticleLibrary ArticleLibrary
+@inject ILogger<Home> Logger
+
+<PageTitle>Library</PageTitle>
+
+<div class="library-page">
+    <header class="library-page__header">
+        <div>
+            <p class="eyebrow">Canonical collection</p>
+            <h1>Articles</h1>
+            <p>File, revise, and prepare writing created through the Forge campus.</p>
+        </div>
+        <a class="btn btn-primary" href="/library/articles/new">New article</a>
+    </header>
+
+    @if (isLoading)
+    {
+        <p class="library-state" role="status">Opening the catalogue…</p>
+    }
+    else if (loadFailed)
+    {
+        <div class="alert alert-danger" role="alert">
+            The article catalogue could not be opened.
+        </div>
+    }
+    else if (articles.Count == 0)
+    {
+        <section class="library-empty">
+            <span aria-hidden="true">¶</span>
+            <h2>The shelves are ready</h2>
+            <p>Create the first article as a private draft. The Library will preserve every revision.</p>
+            <a class="btn btn-outline-primary" href="/library/articles/new">File an article</a>
+        </section>
+    }
+    else
+    {
+        <div class="library-tools">
+            <label>
+                <span class="visually-hidden">Search articles</span>
+                <input class="form-control"
+                       type="search"
+                       @bind="search"
+                       @bind:event="oninput"
+                       placeholder="Search title, topic, tag, series…" />
+            </label>
+            <select class="form-select" @bind="stateFilter" aria-label="Filter by publication state">
+                <option value="">All states</option>
+                @foreach (var state in Enum.GetValues<ArticlePublicationState>())
+                {
+                    <option value="@state.ToString()">@state</option>
+                }
+            </select>
+        </div>
+
+        <section class="article-list" aria-label="Filed articles">
+            @foreach (var article in FilteredArticles)
+            {
+                <a class="article-row" href="/library/articles/@article.Identity.CanonicalId">
+                    <span class="article-row__state article-row__state--@article.Publication.State.ToString().ToLowerInvariant()">
+                        @article.Publication.State
+                    </span>
+                    <span class="article-row__body">
+                        <strong>@article.Identity.Title</strong>
+                        @if (!string.IsNullOrWhiteSpace(article.Identity.Subtitle))
+                        {
+                            <small>@article.Identity.Subtitle</small>
+                        }
+                        <span class="article-row__filing">
+                            @FilingSummary(article)
+                        </span>
+                    </span>
+                    <span class="article-row__meta">
+                        <span>rev. @article.Publication.Revision</span>
+                        <time datetime="@article.Provenance.UpdatedAtUtc.ToString("O")">
+                            @article.Provenance.UpdatedAtUtc.ToString("MMM d, yyyy")
+                        </time>
+                    </span>
+                    <span class="article-row__arrow" aria-hidden="true">→</span>
+                </a>
+            }
+        </section>
+
+        @if (!FilteredArticles.Any())
+        {
+            <p class="library-state">No articles match this filing view.</p>
+        }
+    }
+</div>
+
+@code {
+    private readonly List<Article> articles = [];
+    private bool isLoading = true;
+    private bool loadFailed;
+    private string search = string.Empty;
+    private string stateFilter = string.Empty;
+
+    private IEnumerable<Article> FilteredArticles => articles.Where(article =>
+    {
+        var matchesState = string.IsNullOrEmpty(stateFilter) ||
+                           article.Publication.State.ToString() == stateFilter;
+        if (!matchesState || string.IsNullOrWhiteSpace(search))
+        {
+            return matchesState;
+        }
+
+        var terms = string.Join(
+            " ",
+            article.Identity.Title,
+            article.Identity.Subtitle,
+            article.Classification.Series,
+            article.Classification.Collection,
+            string.Join(" ", article.Classification.Topics),
+            string.Join(" ", article.Classification.Tags));
+        return terms.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase);
+    });
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            articles.AddRange(await ArticleLibrary.ListAsync());
+        }
+        catch (Exception exception)
+        {
+            loadFailed = true;
+            Logger.LogError(exception, "Article catalogue retrieval failed");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string FilingSummary(Article article)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(article.Classification.Series))
+        {
+            parts.Add(article.Classification.Series);
+        }
+
+        parts.AddRange(article.Classification.Topics.Take(2));
+        parts.AddRange(article.Classification.Tags.Take(2).Select(tag => $"#{tag}"));
+        return parts.Count == 0 ? "Unfiled" : string.Join(" · ", parts);
+    }
+}

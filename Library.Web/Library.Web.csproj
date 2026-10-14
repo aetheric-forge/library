@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><GenerateDependencyFile>true</GenerateDependencyFile><CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies></PropertyGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../runtime/src/Institutions/AethericForge.Runtime.Institutions.Library/AethericForge.Runtime.Institutions.Library.csproj" />
+    <ProjectReference Include="../runtime/src/Services/AethericForge.Runtime.Services.Library/AethericForge.Runtime.Services.Library.csproj" />
+    <ProjectReference Include="../runtime/src/Services/AethericForge.Runtime.Services.Knowledge/AethericForge.Runtime.Services.Knowledge.csproj" />
+    <ProjectReference Include="../runtime/src/Providers/AethericForge.Runtime.Providers.Knowledge.MongoDb/AethericForge.Runtime.Providers.Knowledge.MongoDb.csproj" />
+    <ProjectReference Include="../primitives/src/Primitives.MongoDb/Primitives.MongoDb.csproj" />
+  </ItemGroup>
+</Project>

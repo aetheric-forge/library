@@ -1,0 +1,19 @@
+descriptor:
+  id: library
+  name: Library
+  version: 1.0.0
+  description: Canonical articles and durable knowledge.
+dependencies: []
+domains: []
+organizations: []
+roles: []
+capabilities: []
+resources:
+  - id: knowledge
+    name: Library storage
+    type: knowledge
+    ownership: owned
+workflows: []
+policies: []
+initialState:
+  configuration: {}
