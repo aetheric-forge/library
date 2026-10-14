@@ -1,0 +1,8 @@
+institution: library
+version: 1.0.0
+deployment:
+  name: production
+bindings:
+  knowledge:
+    provider: mongodb
+    database: forge-library

@@ -1,0 +1,95 @@
+.library-shell {
+    min-height: 100vh;
+    display: flex;
+    background: var(--py-canvas);
+}
+
+.library-sidebar {
+    width: 17.5rem;
+    flex: 0 0 17.5rem;
+    min-height: 100vh;
+    background: var(--py-ink);
+    color: var(--py-paper);
+}
+
+.library-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.library-workspace-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 4.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem clamp(1.25rem, 4vw, 3.5rem);
+    border-bottom: 1px solid var(--py-line);
+    background: color-mix(in srgb, var(--py-canvas) 92%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.library-context {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--py-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.library-context__mark {
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--py-cobalt) 45%, transparent);
+    border-radius: 50%;
+    color: var(--py-cobalt);
+    font-family: var(--py-display);
+}
+
+.library-content {
+    width: 100%;
+    max-width: 92rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 5vw, 4rem) 5rem;
+}
+
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.8rem 2.5rem 0.8rem 1rem;
+    border: 1px solid #e5b849;
+    border-radius: 0.5rem;
+    background: #fff3cd;
+}
+
+#blazor-error-ui .dismiss {
+    position: absolute;
+    right: 0.7rem;
+    cursor: pointer;
+}
+
+@media (max-width: 760px) {
+    .library-shell {
+        display: block;
+    }
+
+    .library-sidebar {
+        width: 100%;
+        min-height: 0;
+    }
+
+    .library-workspace-header {
+        position: static;
+    }
+}

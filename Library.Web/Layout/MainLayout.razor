@@ -1,0 +1,27 @@
+@inherits LayoutComponentBase
+
+<div class="library-shell">
+    <aside class="library-sidebar">
+        <NavMenu />
+    </aside>
+
+    <main class="library-main">
+        <header class="library-workspace-header">
+            <div class="library-context">
+                <span class="library-context__mark" aria-hidden="true">L</span>
+                Authoritative collection
+            </div>
+            <Library.Web.Shared.InstitutionLoginWidget />
+        </header>
+
+        <article class="library-content">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a class="reload" href=".">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
